@@ -4,13 +4,12 @@
     python3 scripts/fetch_place_people.py --place Ніжин --oblast "Чернігівська область"
     python3 scripts/fetch_place_people.py --place Бахмут --oblast "Донецька область" --role event
 
-Writes data/people/<slug>_<role>.csv (UTF-8 with BOM) with name, status,
+Writes data/people/<slug>_<role>.csv (UTF-8 with BOM) and .xlsx with name, status,
 event date, rank, unit, date of birth (from the profile URL) and profile link.
 The API returns 50 people per request and each request takes ~10 s, so a town
 of 500 people takes about 2-3 minutes.
 """
 import argparse
-import csv
 import gzip
 import json
 import re
@@ -28,6 +27,40 @@ ROOT = Path(__file__).resolve().parent.parent
 API = "https://ualosses.org/api/map/drilldown/"
 STATUS_RU = {"dead": "погиб", "missing": "пропал без вести", "prisoner": "в плену"}
 PAUSE = 3.0
+UK_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя"
+
+
+def uk_key(name):
+    """Sort key for Ukrainian alphabetical order (plain sort puts Є/І/Ї before А)."""
+    return [UK_ALPHABET.find(c) if c in UK_ALPHABET else 100 + ord(c) for c in name.lower()]
+
+
+def write_outputs(rows, out):
+    """rows: dicts from the API -> CSV + XLSX next to each other."""
+    import pandas as pd
+
+    seen, recs = set(), []
+    for r in sorted(rows, key=lambda r: uk_key(r["name"])):
+        if r["url"] in seen:
+            continue
+        seen.add(r["url"])
+        m = re.search(r"-(\d{4}-\d\d-\d\d)-", r["url"])
+        recs.append({
+            "ПІБ": r["name"], "статус": r["status"], "статус_ru": STATUS_RU.get(r["status"], r["status"]),
+            "дата_события": r.get("event_date") or "", "дата_рождения": m.group(1) if m else "",
+            "звание": r.get("rank") or "", "часть": r.get("unit") or "",
+            "профиль": "https://ualosses.org" + r["url"],
+        })
+    df = pd.DataFrame(recs)
+    df.to_csv(out, index=False, encoding="utf-8-sig")
+    with pd.ExcelWriter(out.with_suffix(".xlsx"), engine="openpyxl") as xl:
+        df.to_excel(xl, index=False, sheet_name="people")
+        ws = xl.sheets["people"]
+        ws.freeze_panes = "A2"
+        ws.auto_filter.ref = ws.dimensions
+        for col, width in zip("ABCDEFGH", (38, 10, 18, 14, 14, 16, 50, 60)):
+            ws.column_dimensions[col].width = width
+    return len(df)
 
 
 def find_place(name, oblast, level):
@@ -82,19 +115,8 @@ def main():
     out_dir = ROOT / "data" / "people"
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / f"{slugify(place['name'])}_{args.role}.csv"
-    seen = set()
-    with open(out, "w", encoding="utf-8-sig", newline="") as fh:
-        w = csv.writer(fh)
-        w.writerow(["ПІБ", "статус", "статус_ru", "дата_события", "дата_рождения", "звание", "часть", "профиль"])
-        for r in sorted(rows, key=lambda r: r["name"]):
-            if r["url"] in seen:
-                continue
-            seen.add(r["url"])
-            m = re.search(r"-(\d{4}-\d\d-\d\d)-", r["url"])
-            w.writerow([r["name"], r["status"], STATUS_RU.get(r["status"], r["status"]), r.get("event_date") or "",
-                        m.group(1) if m else "", r.get("rank") or "", r.get("unit") or "",
-                        "https://ualosses.org" + r["url"]])
-    print(f"{len(seen)} people -> {out.relative_to(ROOT)}")
+    n = write_outputs(rows, out)
+    print(f"{n} people -> {out.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
