@@ -22,6 +22,24 @@ python3 scripts/fetch_ualosses.py --rank-counts   # ~3 минуты
 python3 scripts/build_tables.py
 ```
 
+## Графики для видео
+
+`charts/`: PNG 3840×2160 (16:9), каждый в светлой и тёмной версии.
+
+- `weekly_losses_*.png`: потери по неделям с 24.02.2022, по статусам.
+  Последние недели затенены, потому что данные по ним ещё поступают.
+- `place_nizhyn_origin_*.png`: военные из Нежина. Общее число, разбивка по статусам
+  и по годам, на 10 тыс. жителей, а также громада и район.
+  Цифры к графику: `data/tables/place_nizhyn_origin_yearly.csv` и `_monthly.csv`.
+
+Такой же график можно сделать для любого населённого пункта (название по-украински, как на сайте):
+
+```bash
+pip install matplotlib
+python3 scripts/charts.py --skip-weekly --place Бахмут --oblast "Донецька область" --role event   # где погибли
+python3 scripts/charts.py --skip-weekly --place Кривий\ Ріг --oblast "Дніпропетровська область"  # откуда родом
+```
+
 ## Таблицы
 
 Во всех таблицах есть колонки `dead` (погибшие), `missing` (пропавшие без вести),
