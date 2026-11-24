@@ -1,0 +1,66 @@
+{
+ "fetched_at": "2026-11-24T22:31:37+00:00",
+ "total_in_database": 234573,
+ "rows": [
+  {
+   "casualty_type": "dead",
+   "rank_type": "officers",
+   "count": 7526
+  },
+  {
+   "casualty_type": "dead",
+   "rank_type": "nco",
+   "count": 25366
+  },
+  {
+   "casualty_type": "dead",
+   "rank_type": "enlisted",
+   "count": 66935
+  },
+  {
+   "casualty_type": "dead",
+   "rank_type": "unknown",
+   "count": 16125
+  },
+  {
+   "casualty_type": "missing",
+   "rank_type": "officers",
+   "count": 209
+  },
+  {
+   "casualty_type": "missing",
+   "rank_type": "nco",
+   "count": 793
+  },
+  {
+   "casualty_type": "missing",
+   "rank_type": "enlisted",
+   "count": 3503
+  },
+  {
+   "casualty_type": "missing",
+   "rank_type": "unknown",
+   "count": 101283
+  },
+  {
+   "casualty_type": "prisoner",
+   "rank_type": "officers",
+   "count": 871
+  },
+  {
+   "casualty_type": "prisoner",
+   "rank_type": "nco",
+   "count": 1561
+  },
+  {
+   "casualty_type": "prisoner",
+   "rank_type": "enlisted",
+   "count": 4468
+  },
+  {
+   "casualty_type": "prisoner",
+   "rank_type": "unknown",
+   "count": 5933
+  }
+ ]
+}
